@@ -76,7 +76,8 @@ def main():
     hx_roots = get_roots(hx, hx_pairs, 200, 1e-6, method = 'secant')
     print('hx roots (secant):', hx_roots)
     exp, exp_roots, n = find_series(x, x0, hx_roots, hx_range)
-    print('Teiloro eilutes numeris: {0}\nTeiloro eilutes saknys: {1}\nTeiloro eilute: {2}'.format(n, exp_roots, exp))
+    print('Teiloro eilutes numeris: {0}\nTeiloro eilutes saknys: {1}\nTeiloro eilute: {2}'.format(n, exp_roots, exp.n()))
+
 
     new_range = [-15, 15]
     plt.plot(new_range, [0, 0], '--k')
@@ -120,12 +121,6 @@ def main():
         plt.xlabel("TE eilė")
         plt.ylabel("{0} h(x) šaknies ir artimiausios TE šaknies skirtumas".format(i))
         plt.show()
-
-        
- 
-            
-
-    
 
 if __name__ == "__main__":
     main()
