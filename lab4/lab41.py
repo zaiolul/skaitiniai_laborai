@@ -2,7 +2,7 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-import scipy as sp
+import scipy.integrate 
 
 def draw(x, y, xlabel="x", ylabel="y", title="sample text", color="r", style=""):
     plt.plot(x, y, color + style)
@@ -11,13 +11,14 @@ def draw(x, y, xlabel="x", ylabel="y", title="sample text", color="r", style="")
     plt.ylabel(ylabel)
     plt.show()
 
-def func(velocity, t, dt):
-   
+def _func(t, velocity):
     if t <= 25:
-        dv = (-9.8 + 0.1 * velocity ** 2 / (60 + 15)) * dt
+        return (-9.8 + 0.1 * velocity ** 2 / (60 + 15)) 
     else:
-        dv =  (-9.8 + 7 * velocity ** 2 / (60 + 15)) * dt
-    return dv
+        return (-9.8 + 7 * velocity ** 2 / (60 + 15)) 
+    
+def func(velocity, t, dt):
+    return _func(t, velocity) * dt
 
 def eulers(height, velocity, max_time, dt, plot_results=True):
     time_intervals = int(max_time / dt)
@@ -43,8 +44,8 @@ def eulers(height, velocity, max_time, dt, plot_results=True):
             break
     
     if plot_results:
-        draw(times, results[0,:],"laikas, s", "aukštis, m", "Eulerio m. aukščio kitimas", "r")
-        draw(times, results[1,:],"laikas, s", "greitis, m/s", "Eulerio m. greičio kitimas", "r")
+        draw(times, results[0,:],"laikas, s", "aukštis, m", "Eulerio m. aukščio kitimas (dt={})".format(dt), "r")
+        draw(times, results[1,:],"laikas, s", "greitis, m/s", "Eulerio m. greičio kitimas (dt={})".format(dt), "r")
     return [results,times]
 
 
@@ -93,9 +94,31 @@ def stability(function, height, velocity, max_time, dt):
             break
         cur_dt += 0.01
         plt.plot(res[1], res[0][1])
+        plt.title("Greičio kitimai su skirtingais žingsniais")
+        plt.xlabel("laikas, s")
+        plt.ylabel("greitis, m/s")
         plt.draw()
     plt.show()
 
+def compare(height, velocity, dt, max_time):
+    times = np.linspace(0, max_time, int(max_time / dt))
+    result_eulers = eulers(height, velocity, max_time, dt, False)
+    result_ivrk = ivrk(height, velocity, max_time, dt, False)
+
+    result_integrate = scipy.integrate.solve_ivp(   \
+        fun=_func,  \
+        t_span=[0,300],     \
+        t_eval=times,    \
+        y0=[velocity])
+    
+    plt.plot(times, result_eulers[0][1], 'r')
+    plt.plot(times, result_ivrk[0][1], 'g')
+    plt.plot(times, result_integrate.y[0], 'b')
+    plt.legend(["Eulerio", "IV RK", "SciPy.Integrate"])
+    plt.title("Sprendinių palyginimas")
+    plt.xlabel("laikas, s")
+    plt.ylabel("greitis, m/s")
+    plt.show()
 
 if __name__ == "__main__":
     #pradiniai duomenys
@@ -103,12 +126,12 @@ if __name__ == "__main__":
     velocity = 0.0
     max_time = 300 #240 s
     dt = 0.01
-    a = eulers(height, velocity, max_time, dt, plot_results=True)
-    b = ivrk(height, velocity, max_time, dt, plot_results=True)
+    # eulers(height, velocity, max_time, dt, plot_results=True)
+    # ivrk(height, velocity, max_time,  dt, plot_results=True)
     # stability(eulers, height, velocity, max_time, dt)
-    # stability(ivrk, height, velocity, max_time, dt)
+    stability(ivrk, height, velocity, max_time, dt)
 
-  
+    # compare(height, velocity, dt, max_time)
     # for intervals in [10_000, 8_000, 6_000, 4_000, 3_000, 1500]:     
     #     a = eulers(height, velocity, max_time, intervals )
     #     b = ivrk(height, velocity, max_time, intervals)
